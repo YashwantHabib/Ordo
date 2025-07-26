@@ -1,5 +1,8 @@
 import { StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
 import OnboardingScreen from './screens/OnboardingScreen';
+import SignupScreen from './screens/SignupScreen';
+import LoginScreen from './screens/LogInScreen';
+import ForgotPasswordScreen from './screens/ForgotPasswordScreen';
 
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
@@ -7,7 +10,7 @@ function App() {
   return (
     <View style={styles.container}>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <OnboardingScreen />
+      <ForgotPasswordScreen />
     </View>
   );
 }
