@@ -22,7 +22,7 @@ export const OrdoButton = ({ title, onPress, style = {} }: OrdoButtonProps) => {
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: '#7047eb',
+    backgroundColor: '#5e17eb',
     paddingHorizontal: 30,
     paddingVertical: 12,
     borderRadius: 25,

@@ -4,6 +4,7 @@ import SignupScreen from './screens/SignupScreen';
 import LoginScreen from './screens/LogInScreen';
 import ForgotPasswordScreen from './screens/ForgotPasswordScreen';
 import HomeScreen from './screens/HomeScreen';
+import AddTaskScreen from './screens/AddTaskScreen';
 
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
@@ -11,7 +12,7 @@ function App() {
   return (
     <View style={styles.container}>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <HomeScreen />
+      <AddTaskScreen />
     </View>
   );
 }
