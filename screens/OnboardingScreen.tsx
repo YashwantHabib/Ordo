@@ -1,12 +1,6 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  Image,
-  Dimensions,
-} from 'react-native';
+import { View, Text, StyleSheet, Image, Dimensions } from 'react-native';
+import { OrdoButton } from '../components/OrdoButton';
 
 const pages = [
   {
@@ -64,11 +58,12 @@ export default function OnboardingScreen() {
       </View>
 
       {/* Bottom Right Button */}
-      <TouchableOpacity style={styles.button} onPress={handleNext}>
-        <Text style={styles.buttonText}>
-          {page === pages.length - 1 ? 'Get Started' : 'Next'}
-        </Text>
-      </TouchableOpacity>
+      <View style={styles.buttonWrapper}>
+        <OrdoButton
+          title={page === pages.length - 1 ? 'Get Started' : 'Next'}
+          onPress={handleNext}
+        />
+      </View>
     </View>
   );
 }
@@ -97,7 +92,7 @@ const styles = StyleSheet.create({
     marginRight: 6,
   },
   activeDot: {
-    backgroundColor: '#5e17eb',
+    backgroundColor: '#7047eb',
     width: 40,
   },
   centerContent: {
@@ -123,18 +118,9 @@ const styles = StyleSheet.create({
     color: '#444',
     paddingHorizontal: 10,
   },
-  button: {
+  buttonWrapper: {
     position: 'absolute',
-    bottom: 40,
+    bottom: 80,
     right: 24,
-    backgroundColor: '#5e17eb',
-    paddingHorizontal: 30,
-    paddingVertical: 12,
-    borderRadius: 25,
-  },
-  buttonText: {
-    fontWeight: 'bold',
-    color: '#fff',
-    fontSize: 16,
   },
 });

@@ -4,6 +4,8 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AuthFormInput } from '../components/AuthFormInput';
+import { OrdoButton } from '../components/OrdoButton';
+import { OrdoLink } from '../components/OrdoLink';
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email'),
@@ -40,17 +42,15 @@ const LoginScreen = ({ navigation }: any) => {
         secureTextEntry
       />
 
-      <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
-        <Text style={styles.forgotText}>Forgot Password?</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.button} onPress={handleSubmit(onSubmit)}>
-        <Text style={styles.buttonText}>Log In</Text>
-      </TouchableOpacity>
-
-      <Text style={styles.link} onPress={() => navigation.navigate('Signup')}>
-        Don't have an account? Sign Up
-      </Text>
+      <OrdoButton title="Log In" onPress={handleSubmit(onSubmit)} />
+      <OrdoLink
+        text="Don't have an account? Sign Up"
+        onPress={() => navigation.navigate('ForgotPassword')}
+      />
+      <OrdoLink
+        text="Forgot Password?"
+        onPress={() => navigation.navigate('ForgotPassword')}
+      />
     </View>
   );
 };
@@ -58,7 +58,7 @@ const LoginScreen = ({ navigation }: any) => {
 export default LoginScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 24, marginTop: '30%' },
+  container: { flex: 1, padding: 24, paddingTop: '30%' },
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -68,23 +68,5 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     marginBottom: 24,
-  },
-  forgotText: {
-    color: '#5e17eb',
-    textAlign: 'right',
-    marginBottom: 8,
-  },
-  link: { marginTop: 20, color: '#5e17eb', textAlign: 'center' },
-  button: {
-    backgroundColor: '#5e17eb',
-    paddingHorizontal: 30,
-    paddingVertical: 12,
-    borderRadius: 25,
-    alignItems: 'center',
-  },
-  buttonText: {
-    fontWeight: 'bold',
-    color: '#fff',
-    fontSize: 16,
   },
 });

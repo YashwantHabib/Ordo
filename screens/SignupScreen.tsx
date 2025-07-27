@@ -4,6 +4,8 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AuthFormInput } from '../components/AuthFormInput';
+import { OrdoButton } from '../components/OrdoButton';
+import { OrdoLink } from '../components/OrdoLink';
 
 const signupSchema = z.object({
   name: z.string().min(2, 'Name is too short'),
@@ -41,12 +43,11 @@ const SignupScreen = ({ navigation }: any) => {
         secureTextEntry
       />
 
-      <TouchableOpacity style={styles.button} onPress={handleSubmit(onSubmit)}>
-        <Text style={styles.buttonText}>Sign Up</Text>
-      </TouchableOpacity>
-      <Text style={styles.link} onPress={() => navigation.navigate('Login')}>
-        Already have an account? Log In
-      </Text>
+      <OrdoButton title="Signup" onPress={handleSubmit(onSubmit)} />
+      <OrdoLink
+        text="Already have an account? Log In"
+        onPress={() => navigation.navigate('Login')}
+      />
     </View>
   );
 };
@@ -54,7 +55,7 @@ const SignupScreen = ({ navigation }: any) => {
 export default SignupScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 24, marginTop: '30%' },
+  container: { flex: 1, padding: 24, paddingTop: '30%' },
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -64,18 +65,5 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     marginBottom: 24,
-  },
-  link: { marginTop: 20, color: '#5e17eb', textAlign: 'center' },
-  button: {
-    backgroundColor: '#5e17eb',
-    paddingHorizontal: 30,
-    paddingVertical: 12,
-    borderRadius: 25,
-    alignItems: 'center',
-  },
-  buttonText: {
-    fontWeight: 'bold',
-    color: '#fff',
-    fontSize: 16,
   },
 });

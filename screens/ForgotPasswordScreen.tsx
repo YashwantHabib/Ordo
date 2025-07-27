@@ -4,6 +4,8 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AuthFormInput } from '../components/AuthFormInput';
+import { OrdoButton } from '../components/OrdoButton';
+import { OrdoLink } from '../components/OrdoLink';
 
 const forgotPasswordSchema = z.object({
   email: z.string().email('Invalid email'),
@@ -37,13 +39,8 @@ const ForgotPasswordScreen = ({ navigation }: any) => {
 
       <AuthFormInput control={control} name="email" placeholder="Email" />
 
-      <TouchableOpacity style={styles.button} onPress={handleSubmit(onSubmit)}>
-        <Text style={styles.buttonText}>Send Reset Link</Text>
-      </TouchableOpacity>
-
-      <Text style={styles.link} onPress={() => navigation.goBack()}>
-        Back to Login
-      </Text>
+      <OrdoButton title="Send Reset Link" onPress={handleSubmit(onSubmit)} />
+      <OrdoLink text="Back to Login" onPress={() => navigation.goBack()} />
     </View>
   );
 };
@@ -51,7 +48,11 @@ const ForgotPasswordScreen = ({ navigation }: any) => {
 export default ForgotPasswordScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 24, marginTop: '30%' },
+  container: {
+    flex: 1,
+    padding: 24,
+    paddingTop: '30%',
+  },
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -69,7 +70,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   button: {
-    backgroundColor: '#5e17eb',
+    backgroundColor: '#7047eb',
     paddingHorizontal: 30,
     paddingVertical: 12,
     borderRadius: 25,
