@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  TextInput,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput } from 'react-native';
+import { useForm, Controller } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+
 import AddTaskInput from '../components/addTaskComponents/AddTaskInput';
 import OrdoPill from '../components/OrdoPill';
 import Subtask from '../components/SubTask';
@@ -15,33 +14,51 @@ import AddTaskDateTime from '../components/addTaskComponents/AddTaskDateTime';
 import { OrdoButton } from '../components/OrdoButton';
 import { OrdoLink } from '../components/OrdoLink';
 import { useCategoryStore } from '../utils/stateManagement/useCategoryStore';
-import { useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useTaskStore } from '../utils/stateManagement/useTaskStore';
 import { RootStackParamList } from '../navigation/RootStack';
+import { Workflow } from 'lucide-react-native';
 
 const recurrenceOptions = ['Daily', 'Weekly', 'Monthly'];
 
+const taskSchema = z.object({
+  task_name: z.string().min(1, 'Task name is required'),
+  task_note: z.string().optional(),
+  category: z.string(),
+  recurrence: z.enum(['Daily', 'Weekly', 'Monthly']).nullable().optional(),
+});
+
+type TaskSchema = z.infer<typeof taskSchema>;
+
 const AddTaskScreen = () => {
-  const [taskName, setTaskName] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('Memory Pad');
-  const [date, setDate] = useState(new Date());
-  const [pickerMode, setPickerMode] = useState<'date' | 'time'>('date');
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [notify, setNotify] = useState(false);
-  const [taskNote, setTaskNote] = useState('');
-  const [recurrence, setRecurrence] = useState<string | null>(null);
-  const [subtaskText, setSubtaskText] = useState('');
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
+  const categories = useCategoryStore(state => state.categories);
+  const addTask = useTaskStore(state => state.addTask);
+
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<TaskSchema>({
+    resolver: zodResolver(taskSchema),
+    defaultValues: {
+      task_name: '',
+      task_note: '',
+      category: 'Memory Pad',
+      recurrence: null,
+    },
+  });
+
   const [subtasks, setSubtasks] = useState<
     { task_name: string; completed: boolean }[]
   >([]);
+  const [subtaskText, setSubtaskText] = useState('');
+  const [date, setDate] = useState(new Date());
+  const [notify, setNotify] = useState(false);
+  const [pickerMode, setPickerMode] = useState<'date' | 'time'>('date');
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
-  type NavigationProp = NativeStackNavigationProp<
-    RootStackParamList,
-    'AddTaskScreen'
-  >;
-  const navigation = useNavigation<NavigationProp>();
-
-  const categories = useCategoryStore(state => state.categories);
   const handleAddSubtask = () => {
     if (subtaskText.trim()) {
       setSubtasks(prev => [
@@ -68,6 +85,21 @@ const AddTaskScreen = () => {
     if (selectedValue) setDate(selectedValue);
   };
 
+  const onSubmit = (data: TaskSchema) => {
+    addTask({
+      id: '', // Zustand auto-generates
+      task_name: data.task_name.trim(),
+      task_note: data.task_note?.trim() || '',
+      category: data.category,
+      recurrence: data.recurrence || null,
+      datetime: date.toISOString(),
+      completed: false,
+      notify,
+      subtasks,
+    });
+    navigation.goBack();
+  };
+
   return (
     <ScrollView style={styles.container}>
       {/* Header */}
@@ -75,31 +107,49 @@ const AddTaskScreen = () => {
         <OrdoLink
           text="Cancel"
           style={styles.cancelText}
-          onPress={() => {
-            navigation.goBack();
-          }}
+          onPress={() => navigation.goBack()}
         />
         <Text style={styles.title}>New Task</Text>
-        <OrdoLink text="Create" style={styles.createText} onPress={() => {}} />
+        <OrdoLink
+          text="Create"
+          style={styles.createText}
+          onPress={handleSubmit(onSubmit)}
+        />
       </View>
 
-      <AddTaskInput
-        placeholder="Task Name"
-        value={taskName}
-        onChangeText={setTaskName}
+      {/* Task Name */}
+      <Controller
+        control={control}
+        name="task_name"
+        render={({ field }) => (
+          <AddTaskInput
+            placeholder="Task Name"
+            value={field.value}
+            onChangeText={field.onChange}
+            error={errors.task_name?.message}
+          />
+        )}
       />
 
-      <View style={styles.pillContainer}>
-        {categories.map(cat => (
-          <OrdoPill
-            key={cat.id}
-            label={`${cat.emoji} ${cat.title}`}
-            selected={selectedCategory === cat.title}
-            onPress={() => setSelectedCategory(cat.title)}
-          />
-        ))}
-      </View>
+      {/* Category Pills */}
+      <Controller
+        control={control}
+        name="category"
+        render={({ field }) => (
+          <View style={styles.pillContainer}>
+            {categories.map(cat => (
+              <OrdoPill
+                key={cat.id}
+                label={`${cat.emoji} ${cat.title}`}
+                selected={field.value === cat.title}
+                onPress={() => field.onChange(cat.title)}
+              />
+            ))}
+          </View>
+        )}
+      />
 
+      {/* DateTime */}
       <AddTaskDateTime
         date={date}
         notify={notify}
@@ -115,41 +165,56 @@ const AddTaskScreen = () => {
         />
       )}
 
-      <AddTaskInput
-        placeholder="Task Note"
-        value={taskNote}
-        onChangeText={setTaskNote}
-        multiline
+      {/* Task Note */}
+      <Controller
+        control={control}
+        name="task_note"
+        render={({ field }) => (
+          <AddTaskInput
+            placeholder="Task Note"
+            value={field.value}
+            onChangeText={field.onChange}
+            multiline
+          />
+        )}
       />
 
+      {/* Recurrence */}
       <Text style={styles.sectionLabel}>Repeat</Text>
-      <View style={styles.pillContainer}>
-        {[...recurrenceOptions, 'none'].map(option => (
-          <OrdoPill
-            key={option}
-            label={option}
-            selected={
-              recurrence === option ||
-              (option === 'none' && recurrence === null)
-            }
-            onPress={() => setRecurrence(option === 'none' ? null : option)}
-          />
-        ))}
-      </View>
+      <Controller
+        control={control}
+        name="recurrence"
+        render={({ field }) => (
+          <View style={styles.pillContainer}>
+            {[...recurrenceOptions, 'none'].map(option => (
+              <OrdoPill
+                key={option}
+                label={option}
+                selected={
+                  field.value === option ||
+                  (option === 'none' && field.value === null)
+                }
+                onPress={() =>
+                  field.onChange(option === 'none' ? null : option)
+                }
+              />
+            ))}
+          </View>
+        )}
+      />
+
+      {/* Subtasks */}
 
       <View style={styles.subtaskEntry}>
-        <AddTaskInput
+        <Workflow size={24} />
+        <TextInput
           placeholder="Add a subtask"
           value={subtaskText}
           onChangeText={setSubtaskText}
           style={styles.subtaskInput}
           placeholderTextColor="#999"
         />
-        <OrdoButton
-          style={styles.addBtn}
-          onPress={handleAddSubtask}
-          title="Add"
-        />
+        <OrdoLink onPress={handleAddSubtask} text="Add" style={styles.addBtn} />
       </View>
 
       {subtasks.map((sub, idx) => (
@@ -206,19 +271,19 @@ const styles = StyleSheet.create({
   subtaskEntry: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
     gap: 8,
   },
   subtaskInput: {
     flex: 1,
     borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
+    borderBottomColor: '#ccc',
     fontSize: 16,
+    paddingVertical: 8,
   },
+
   addBtn: {
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-    borderRadius: 16,
-    alignItems: 'center',
+    marginTop: 0,
+    fontSize: 18,
+    fontWeight: '500',
   },
 });

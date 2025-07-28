@@ -1,19 +1,50 @@
 import React from 'react';
-import { TextInput, StyleSheet, TextInputProps } from 'react-native';
+import {
+  TextInput,
+  Text,
+  View,
+  StyleSheet,
+  TextInputProps,
+} from 'react-native';
 
-const AddTaskInput = (props: TextInputProps) => {
+interface AddTaskInputProps extends TextInputProps {
+  error?: string;
+}
+
+const AddTaskInput: React.FC<AddTaskInputProps> = ({
+  error,
+  style,
+  ...rest
+}) => {
   return (
-    <TextInput style={styles.input} placeholderTextColor="#999" {...props} />
+    <View style={styles.wrapper}>
+      <TextInput
+        style={[styles.input, style, error && styles.errorBorder]}
+        {...rest}
+      />
+      {error && <Text style={styles.errorText}>{error}</Text>}
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  wrapper: {
+    marginBottom: 12,
+  },
   input: {
     borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
-    paddingVertical: 10,
+    borderBottomColor: '#ccc',
     fontSize: 16,
-    marginBottom: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+  },
+  errorBorder: {
+    borderBottomColor: 'red',
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 12,
+    marginTop: 4,
   },
 });
 
