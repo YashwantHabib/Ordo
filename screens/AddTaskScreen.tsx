@@ -14,15 +14,11 @@ import Subtask from '../components/SubTask';
 import AddTaskDateTime from '../components/addTaskComponents/AddTaskDateTime';
 import { OrdoButton } from '../components/OrdoButton';
 import { OrdoLink } from '../components/OrdoLink';
+import { useCategoryStore } from '../utils/stateManagement/useCategoryStore';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../navigation/RootStack';
 
-const categories = [
-  { id: '3', title: 'Memory Pad', emoji: '🧠' },
-  { id: '4', title: 'Work', emoji: '💼' },
-  { id: '5', title: 'Shopping', emoji: '🛒' },
-  { id: '6', title: 'Ideas', emoji: '💡' },
-  { id: '7', title: 'Personal', emoji: '👤' },
-  { id: '8', title: 'Travel', emoji: '✈️' },
-];
 const recurrenceOptions = ['Daily', 'Weekly', 'Monthly'];
 
 const AddTaskScreen = () => {
@@ -39,6 +35,13 @@ const AddTaskScreen = () => {
     { task_name: string; completed: boolean }[]
   >([]);
 
+  type NavigationProp = NativeStackNavigationProp<
+    RootStackParamList,
+    'AddTaskScreen'
+  >;
+  const navigation = useNavigation<NavigationProp>();
+
+  const categories = useCategoryStore(state => state.categories);
   const handleAddSubtask = () => {
     if (subtaskText.trim()) {
       setSubtasks(prev => [
@@ -69,7 +72,13 @@ const AddTaskScreen = () => {
     <ScrollView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <OrdoLink text="Cancel" style={styles.cancelText} onPress={() => {}} />
+        <OrdoLink
+          text="Cancel"
+          style={styles.cancelText}
+          onPress={() => {
+            navigation.goBack();
+          }}
+        />
         <Text style={styles.title}>New Task</Text>
         <OrdoLink text="Create" style={styles.createText} onPress={() => {}} />
       </View>

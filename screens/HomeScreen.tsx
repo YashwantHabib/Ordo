@@ -1,46 +1,78 @@
-import React from 'react';
-import { View, FlatList, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, FlatList, Text, StyleSheet } from 'react-native';
 import { Plus } from 'lucide-react-native';
 import { OrdoHeader } from '../components/homeComponents/OrdoHeader';
 import { ListItem } from '../components/homeComponents/ListItem';
-import { SectionHeader } from '../components/homeComponents/SectionHeader';
 import { FloatingButton } from '../components/homeComponents/FloatingButton';
 import { OrdoButton } from '../components/homeComponents/OrdoButton';
-
-const categories = [
-  { id: '3', title: 'Memory Pad', emoji: '🧠' },
-  { id: '4', title: 'Work', emoji: '💼' },
-  { id: '5', title: 'Shopping', emoji: '🛒' },
-  { id: '6', title: 'Ideas', emoji: '💡' },
-  { id: '7', title: 'Personal', emoji: '👤' },
-  { id: '8', title: 'Travel', emoji: '✈️' },
-];
+import { OrdoLink } from '../components/OrdoLink';
+import { useCategoryStore } from '../utils/stateManagement/useCategoryStore';
+import { NewListModal } from '../components/NewListModal';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../navigation/RootStack';
 
 const HomeScreen = () => {
+  const [modalVisible, setModalVisible] = useState(false);
+  const categories = useCategoryStore(state => state.categories);
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const setSelectedList = useCategoryStore(state => state.setSelectedList);
+
   return (
     <View style={styles.container}>
       <OrdoHeader />
 
       <View style={styles.topSection}>
-        <ListItem emoji="📋" title="All Tasks" />
+        <ListItem
+          emoji="📋"
+          title="All Tasks"
+          onPress={() => {
+            setSelectedList(null);
+            navigation.navigate('TaskListScreen');
+          }}
+        />
         <ListItem emoji="📅" title="Calendar" />
       </View>
 
-      <SectionHeader title="Lists" actionLabel="＋ New List" />
+      <View style={styles.listHeader}>
+        <Text style={styles.title}>Lists</Text>
+        <OrdoLink
+          style={styles.action}
+          onPress={() => setModalVisible(true)}
+          text="+ New List"
+        />
+      </View>
 
       <FlatList
         style={styles.categories}
         data={categories}
         renderItem={({ item }) => (
-          <ListItem emoji={item.emoji} title={item.title} />
+          <ListItem
+            emoji={item.emoji}
+            title={item.title}
+            onPress={() => {
+              setSelectedList(item);
+              navigation.navigate('TaskListScreen');
+            }}
+          />
         )}
         keyExtractor={item => item.id}
       />
 
       <OrdoButton />
-      <FloatingButton>
+      <FloatingButton
+        onPress={() => {
+          navigation.navigate('AddTaskScreen');
+        }}
+      >
         <Plus size={24} color="white" />
       </FloatingButton>
+
+      <NewListModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+      />
     </View>
   );
 };
@@ -59,5 +91,18 @@ const styles = StyleSheet.create({
   },
   categories: {
     paddingVertical: 20,
+  },
+  listHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  title: {
+    fontSize: 22,
+    color: 'gray',
+  },
+  action: {
+    marginTop: 0,
+    fontSize: 16,
   },
 });
