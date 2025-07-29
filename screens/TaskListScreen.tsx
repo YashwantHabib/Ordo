@@ -7,11 +7,13 @@ import {
   FlatList,
   Image,
 } from 'react-native';
-import { X } from 'lucide-react-native';
+import { ListFilter, X } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useCategoryStore } from '../utils/stateManagement/useCategoryStore';
 import { OrdoEmptyState } from '../components/OrdoEmptyState';
 import { useTaskStore } from '../utils/stateManagement/useTaskStore';
+import { AnimatedCheckbox } from '../components/AnimatedChecbox';
+import OrdoPill from '../components/OrdoPill';
 import {
   Circle,
   CheckCircle,
@@ -23,10 +25,20 @@ const TaskListScreen = () => {
   const navigation = useNavigation();
   const selectedList = useCategoryStore(state => state.selectedList);
   const tasks = useTaskStore(state => state.tasks);
+  const toggleTaskCompleted = useTaskStore(state => state.toggleTaskCompleted);
+  const [filter, setFilter] = React.useState<
+    'All' | 'Completed' | 'Uncompleted'
+  >('All');
 
   const filteredTasks = selectedList
     ? tasks.filter(task => task.category === selectedList.title)
     : tasks;
+
+  const visibleTasks = filteredTasks.filter(task => {
+    if (filter === 'Completed') return task.completed;
+    if (filter === 'Uncompleted') return !task.completed;
+    return true; // All
+  });
 
   const { title, emoji } = selectedList
     ? selectedList
@@ -35,18 +47,44 @@ const TaskListScreen = () => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>{emoji} </Text>
+        <Text style={styles.filler}> </Text>
         <Text style={styles.headerTitle}>{title}</Text>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <X size={28} color="black" />
         </TouchableOpacity>
       </View>
+      <View style={styles.pillContainer}>
+        <ListFilter size={28} color="black" />
+        {['All', 'Completed', 'Uncompleted'].map(type => {
+          const count =
+            type === 'All'
+              ? filteredTasks.length
+              : type === 'Completed'
+              ? filteredTasks.filter(task => task.completed).length
+              : filteredTasks.filter(task => !task.completed).length;
+
+          return (
+            <OrdoPill
+              key={type}
+              label={`${type} (${count})`}
+              selected={filter === type}
+              onPress={() => setFilter(type as typeof filter)}
+            />
+          );
+        })}
+      </View>
 
       <FlatList
-        data={filteredTasks}
+        data={visibleTasks}
         ListEmptyComponent={
           <OrdoEmptyState
-            text="No tasks yet in this list."
+            text={
+              filter === 'Completed'
+                ? 'No completed tasks.'
+                : filter === 'Uncompleted'
+                ? 'No uncompleted tasks.'
+                : 'No tasks yet in this list.'
+            }
             image={require('../assets/images/OrdoEmptyBox.png')}
           />
         }
@@ -61,11 +99,13 @@ const TaskListScreen = () => {
           return (
             <TouchableOpacity style={styles.taskCard} activeOpacity={0.8}>
               <View style={styles.taskHeader}>
-                {item.completed ? (
-                  <CheckCircle color="#5e17eb" size={22} />
-                ) : (
-                  <Circle color="#c4c4c4" size={22} />
-                )}
+                <AnimatedCheckbox
+                  checked={item.completed}
+                  onToggle={() =>
+                    useTaskStore.getState().toggleTaskCompleted(item.id)
+                  }
+                />
+
                 <Text
                   style={[
                     styles.taskTitle,
@@ -114,9 +154,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
   },
+  filler: {
+    height: 28,
+    width: 28,
+  },
   headerTitle: {
     fontSize: 20,
     fontWeight: '600',
+  },
+  pillContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginBottom: 10,
   },
   empty: {
     textAlign: 'center',

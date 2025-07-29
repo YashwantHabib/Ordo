@@ -20,6 +20,8 @@ export type Task = {
 type TaskStore = {
   tasks: Task[];
   addTask: (task: Task) => void;
+  toggleTaskCompleted: (id: string) => void;
+  toggleSubtaskCompleted?: (taskId: string, subtaskIndex: number) => void;
 };
 
 export const useTaskStore = create<TaskStore>(set => ({
@@ -27,5 +29,26 @@ export const useTaskStore = create<TaskStore>(set => ({
   addTask: task =>
     set(state => ({
       tasks: [...state.tasks, { ...task, id: Date.now().toString() }],
+    })),
+  toggleTaskCompleted: (id: string) =>
+    set(state => ({
+      tasks: state.tasks.map(task =>
+        task.id === id ? { ...task, completed: !task.completed } : task,
+      ),
+    })),
+  toggleSubtaskCompleted: (taskId: string, subtaskIndex: number) =>
+    set(state => ({
+      tasks: state.tasks.map(task =>
+        task.id === taskId
+          ? {
+              ...task,
+              subtasks: task.subtasks.map((subtask, index) =>
+                index === subtaskIndex
+                  ? { ...subtask, completed: !subtask.completed }
+                  : subtask,
+              ),
+            }
+          : task,
+      ),
     })),
 }));
