@@ -6,6 +6,7 @@ import ForgotPasswordScreen from './screens/ForgotPasswordScreen';
 import HomeScreen from './screens/HomeScreen';
 import TaskListScreen from './screens/TaskListScreen';
 import AddTaskScreen from './screens/AddTaskScreen';
+import SearchTaskScreen from './screens/SearchTaskScreen';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { RootStackParamList } from './navigation/RootStack';
@@ -22,6 +23,7 @@ function App() {
           <Stack.Screen name="HomeScreen" component={HomeScreen} />
           <Stack.Screen name="TaskListScreen" component={TaskListScreen} />
           <Stack.Screen name="AddTaskScreen" component={AddTaskScreen} />
+          <Stack.Screen name="SearchTaskScreen" component={SearchTaskScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </View>

@@ -1,86 +1,57 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
-  TouchableOpacity,
   StyleSheet,
+  TextInput,
+  TouchableOpacity,
   FlatList,
-  Image,
 } from 'react-native';
-import { ListFilter, X } from 'lucide-react-native';
+import { X } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useCategoryStore } from '../utils/stateManagement/useCategoryStore';
-import { OrdoEmptyState } from '../components/OrdoEmptyState';
 import { useTaskStore } from '../utils/stateManagement/useTaskStore';
-import { AnimatedCheckbox } from '../components/AnimatedChecbox';
-import OrdoPill from '../components/OrdoPill';
-import { Workflow } from 'lucide-react-native';
+import { OrdoEmptyState } from '../components/OrdoEmptyState';
 import { format } from 'date-fns';
+import { Workflow } from 'lucide-react-native';
+import { AnimatedCheckbox } from '../components/AnimatedChecbox';
 
-const TaskListScreen = () => {
+const SearchTaskScreen = () => {
   const navigation = useNavigation();
-  const selectedList = useCategoryStore(state => state.selectedList);
+  const [query, setQuery] = useState('');
   const tasks = useTaskStore(state => state.tasks);
-  const [filter, setFilter] = React.useState<
-    'All' | 'Completed' | 'Uncompleted'
-  >('All');
 
-  const filteredTasks = selectedList
-    ? tasks.filter(task => task.category === selectedList.title)
-    : tasks;
-
-  const visibleTasks = filteredTasks.filter(task => {
-    if (filter === 'Completed') return task.completed;
-    if (filter === 'Uncompleted') return !task.completed;
-    return true; // All
-  });
-
-  const { title, emoji } = selectedList
-    ? selectedList
-    : { title: 'All Tasks', emoji: '📋' };
+  const filteredTasks = tasks.filter(task =>
+    task.task_name.toLowerCase().includes(query.toLowerCase()),
+  );
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.filler}> </Text>
-        <Text style={styles.headerTitle}>{title}</Text>
+        <Text style={styles.headerTitle}>Search</Text>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <X size={28} color="black" />
         </TouchableOpacity>
       </View>
-      <View style={styles.pillContainer}>
-        <ListFilter size={28} color="black" />
-        {['All', 'Completed', 'Uncompleted'].map(type => {
-          const count =
-            type === 'All'
-              ? filteredTasks.length
-              : type === 'Completed'
-              ? filteredTasks.filter(task => task.completed).length
-              : filteredTasks.filter(task => !task.completed).length;
-
-          return (
-            <OrdoPill
-              key={type}
-              label={`${type} (${count})`}
-              selected={filter === type}
-              onPress={() => setFilter(type as typeof filter)}
-            />
-          );
-        })}
+      <View style={styles.searchBar}>
+        <TextInput
+          placeholder="Search tasks..."
+          placeholderTextColor="#999"
+          value={query}
+          onChangeText={setQuery}
+          style={styles.searchInput}
+        />
       </View>
-
       <FlatList
-        data={visibleTasks}
+        data={filteredTasks}
         ListEmptyComponent={
           <OrdoEmptyState
             text={
-              filter === 'Completed'
-                ? 'No completed tasks.'
-                : filter === 'Uncompleted'
-                ? 'No uncompleted tasks.'
-                : 'No tasks yet in this list.'
+              query
+                ? 'No matching tasks found.'
+                : 'Start typing to search your tasks.'
             }
-            image={require('../assets/images/OrdoEmptyBox.png')}
+            image={require('../assets/images/OrdoSearch.png')}
           />
         }
         keyExtractor={item => item.id}
@@ -89,7 +60,6 @@ const TaskListScreen = () => {
             sub => sub.completed,
           ).length;
           const totalSubtasks = item.subtasks.length;
-          const hasSubtasks = totalSubtasks > 0;
 
           return (
             <TouchableOpacity style={styles.taskCard} activeOpacity={0.9}>
@@ -108,6 +78,7 @@ const TaskListScreen = () => {
                         styles.taskTitle,
                         item.completed && {
                           textDecorationLine: 'line-through',
+                          color: '#aaa',
                         },
                       ]}
                     >
@@ -119,7 +90,7 @@ const TaskListScreen = () => {
                       </Text>
                     )}
                   </View>
-                  {hasSubtasks && (
+                  {totalSubtasks > 0 && (
                     <View style={styles.subtaskBadge}>
                       <Workflow size={14} color="#666" />
                       <Text style={styles.subtaskText}>
@@ -137,7 +108,8 @@ const TaskListScreen = () => {
   );
 };
 
-export default TaskListScreen;
+export default SearchTaskScreen;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -159,28 +131,25 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '600',
   },
-  pillContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: 10,
+  searchBar: {
+    marginBottom: 20,
   },
-  empty: {
-    textAlign: 'center',
-    color: 'gray',
-    marginTop: 40,
-  },
-  taskItem: {
-    fontSize: 18,
-    marginBottom: 12,
+  searchInput: {
+    fontSize: 16,
+    borderColor: '#ddd',
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    color: '#000',
   },
   taskCard: {
     backgroundColor: '#fff',
     paddingHorizontal: 16,
-    marginVertical: 10, // increased spacing between items
+    marginBottom: 20,
   },
   taskRow: {
     flexDirection: 'row',
-    justifyContent: 'center',
     alignItems: 'center',
   },
   taskContent: {
@@ -193,8 +162,8 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   taskTitle: {
-    fontSize: 17, // increased from 16
-    fontWeight: '600', // better contrast
+    fontSize: 17,
+    fontWeight: '600',
     color: '#333',
   },
   dateText: {
